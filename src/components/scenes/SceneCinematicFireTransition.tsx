@@ -5,21 +5,48 @@ interface Props {
   onActiveStateChange?: (isActive: boolean) => void;
 }
 
+// Anime Video URL uploaded by user
+const ANIME_VIDEO_URL = 'https://videotourl.com/videos/1789050052981-f2ea8d5f-1db3-49be-b972-b866d6924137.mp4';
+const FALLBACK_VIDEO_URL = 'https://videotourl.com/videos/1788867500284-e6f17e76-6a68-494d-804f-2077744f8207.mp4';
+
 /**
- * SceneCinematicFireTransition — Fullscreen Cinematic Fire Video Transition Bridge (~13.45s)
- * Single pre-mounted video with IntersectionObserver for deterministic replay on repeated scrolling.
- * JOURNEY → CINEMATIC VIDEO TRANSITION → CONTACT
+ * SceneCinematicFireTransition — Fullscreen Anime Video Transition Bridge before Contact
+ * Features:
+ * 1. Plays the user's Anime Video in high quality before Scene09Contact
+ * 2. IntersectionObserver trigger for 100% deterministic playback on scroll
+ * 3. Mobile autoplay & user interaction fallback handler
  */
 export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onActiveStateChange }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [videoEnded, setVideoEnded] = useState(false);
+  const [currentSrc, setCurrentSrc] = useState(ANIME_VIDEO_URL);
 
   useEffect(() => {
     const container = containerRef.current;
     const video = videoRef.current;
     if (!container || !video) return;
+
+    video.muted = true;
+    video.playsInline = true;
+
+    const playVideo = () => {
+      if (!video) return;
+      video.muted = true;
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => setIsPlaying(true))
+          .catch((err) => {
+            console.warn('Video play attempt failed, trying fallback:', err);
+            // If main anime video fails, try fallback source
+            if (currentSrc !== FALLBACK_VIDEO_URL) {
+              setCurrentSrc(FALLBACK_VIDEO_URL);
+            }
+          });
+      }
+    };
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -30,36 +57,46 @@ export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onAc
           }
 
           if (inView) {
-            // When entering viewport, reset and play video immediately
             setVideoEnded(false);
-            const playPromise = video.play();
-            if (playPromise !== undefined) {
-              playPromise
-                .then(() => setIsPlaying(true))
-                .catch(() => {
-                  setIsPlaying(true);
-                });
-            }
+            playVideo();
           } else {
-            // When leaving viewport, pause video cleanly
             video.pause();
             setIsPlaying(false);
           }
         });
       },
-      { threshold: 0.05 }
+      { threshold: 0.1 }
     );
 
     observer.observe(container);
 
+    // Touch/Click listener fallback for mobile autoplay policies
+    const handleUserInteraction = () => {
+      if (video && video.paused) {
+        playVideo();
+      }
+    };
+
+    window.addEventListener('touchstart', handleUserInteraction, { passive: true });
+    window.addEventListener('click', handleUserInteraction, { passive: true });
+
     return () => {
       observer.disconnect();
+      window.removeEventListener('touchstart', handleUserInteraction);
+      window.removeEventListener('click', handleUserInteraction);
     };
-  }, [onActiveStateChange]);
+  }, [onActiveStateChange, currentSrc]);
 
   const handleEnded = () => {
     setVideoEnded(true);
     setIsPlaying(false);
+  };
+
+  const handleError = () => {
+    console.warn('Anime video playback error, switching source');
+    if (currentSrc === ANIME_VIDEO_URL) {
+      setCurrentSrc(FALLBACK_VIDEO_URL);
+    }
   };
 
   return (
@@ -84,39 +121,41 @@ export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onAc
         <div 
           className="absolute inset-0 pointer-events-none z-20"
           style={{
-            background: 'radial-gradient(circle at center, rgba(0,0,0,0) 50%, rgba(0,0,0,0.85) 100%)'
+            background: 'radial-gradient(circle at center, rgba(0,0,0,0) 40%, rgba(0,0,0,0.85) 100%)'
           }}
         />
 
-        {/* Single Pre-Mounted Fullscreen Cinematic Video */}
+        {/* Anime Video Component */}
         <video
           ref={videoRef}
-          src="https://videotourl.com/videos/1788867500284-e6f17e76-6a68-494d-804f-2077744f8207.mp4"
+          src={currentSrc}
           autoPlay
           muted
           playsInline
           preload="auto"
-          loop={false}
+          loop={true}
           onEnded={handleEnded}
-          onError={(e) => console.error('Cinematic fire video error:', e)}
+          onError={handleError}
           className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10 m-0 p-0 border-0 opacity-100 scale-100"
+          style={{
+            objectFit: 'cover',
+            objectPosition: 'center center',
+          }}
         />
 
-        {/* Energy Collapse & Center Orange Signal Ignition Node */}
+        {/* Atmosphere Accent HUD */}
+        <div className="absolute bottom-10 left-10 z-30 flex items-center space-x-3 pointer-events-none font-mono text-xs tracking-widest text-[#FF5500] uppercase bg-black/60 px-4 py-2 rounded-full border border-[#FF5500]/30 backdrop-blur-md">
+          <span className="w-2 h-2 rounded-full bg-[#FF5500] animate-pulse" />
+          <span>CINEMATIC ANIME SEQUENCE // SHIYAM.S</span>
+        </div>
+
+        {/* Signal Node Overlay on End */}
         {videoEnded && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-30 space-y-4">
-            {/* Ignited Signal Node */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-30 space-y-4 bg-black/80">
             <div className="relative flex items-center justify-center">
               <div className="rounded-full bg-[#FF5500] w-6 h-6 shadow-[0_0_80px_#FF5500] animate-ping" />
               <div className="absolute rounded-full border border-[#FF5500]/80 w-32 h-32 animate-pulse" />
-              <div className="absolute rounded-full border border-[#FF5500]/40 w-64 h-64" />
             </div>
-
-            {/* Atmosphere Atmosphere */}
-            <div 
-              className="absolute rounded-full blur-[140px] w-[500px] h-[500px]"
-              style={{ background: 'radial-gradient(circle, rgba(255, 85, 0, 0.65) 0%, rgba(0, 0, 0, 0) 70%)' }}
-            />
           </div>
         )}
 
