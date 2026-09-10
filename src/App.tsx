@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Lenis from 'lenis';
-import { OpeningVideoIntro } from '@/components/intro/OpeningVideoIntro';
 import { Scene00Intro } from '@/components/scenes/Scene00Intro';
 import { CanvasWorld } from '@/components/background/CanvasWorld';
 import { GrainOverlay } from '@/components/background/GrainOverlay';
@@ -17,14 +16,14 @@ import { Scene06Journey } from '@/components/scenes/Scene06Journey';
 import { SceneCinematicFireTransition } from '@/components/scenes/SceneCinematicFireTransition';
 import { Scene09Contact } from '@/components/scenes/Scene09Contact';
 
-export type IntroPageState = 'OPENING_FILM' | 'INTRO_REVEAL' | 'MAIN_PORTFOLIO';
+export type IntroPageState = 'INTRO_REVEAL' | 'MAIN_PORTFOLIO';
 
 export function App() {
   const [activeSection, setActiveSection] = useState('home');
   const [lenisRef, setLenisRef] = useState<Lenis | null>(null);
 
-  // Page Intro State Machine: OPENING_FILM → INTRO_REVEAL → MAIN_PORTFOLIO
-  const [pageState, setPageState] = useState<IntroPageState>('OPENING_FILM');
+  // Page Intro State Machine: INTRO_REVEAL → MAIN_PORTFOLIO (100% Code-Driven 3D Kinetic Typography Intro)
+  const [pageState, setPageState] = useState<IntroPageState>('INTRO_REVEAL');
   const [showNav, setShowNav] = useState(false);
 
   useEffect(() => {
@@ -50,7 +49,7 @@ export function App() {
 
   // Control scrolling lock based on intro page state
   useEffect(() => {
-    if (pageState === 'OPENING_FILM' || pageState === 'INTRO_REVEAL') {
+    if (pageState === 'INTRO_REVEAL') {
       if (lenisRef) lenisRef.stop();
       document.body.style.overflow = 'hidden';
     } else {
@@ -74,16 +73,7 @@ export function App() {
 
   return (
     <div className="relative min-h-screen bg-[#050508] text-neutral-100 selection:bg-[#FF5500] selection:text-white font-sans antialiased overflow-x-hidden">
-      {/* ═══ 1. OPENING FILM SEQUENCE ═══ */}
-      {pageState === 'OPENING_FILM' && (
-        <OpeningVideoIntro
-          onComplete={() => {
-            setPageState('INTRO_REVEAL');
-          }}
-        />
-      )}
-
-      {/* ═══ 2. 3D KINETIC TYPOGRAPHY INTRO ═══ */}
+      {/* ═══ 1. DEDICATED 3D KINETIC TYPOGRAPHY INTRO SECTION (Image-Free, Code-Driven) ═══ */}
       {pageState === 'INTRO_REVEAL' && (
         <Scene00Intro
           onNavReveal={() => setShowNav(true)}
@@ -96,19 +86,19 @@ export function App() {
 
       {/* UI Controls & Overlays */}
       <CustomCursor />
-      {pageState === 'MAIN_PORTFOLIO' && <ScrollProgressBar />}
-      {pageState === 'MAIN_PORTFOLIO' && <CanvasWorld />}
+      {pageState !== 'INTRO_REVEAL' && <ScrollProgressBar />}
+      {pageState !== 'INTRO_REVEAL' && <CanvasWorld />}
       <GrainOverlay />
 
-      {/* Header Navigation */}
+      {/* Header Navigation — Appears smoothly after Intro completes */}
       <Header
         activeSection={activeSection}
         onNavigate={handleNavigate}
         isVisible={showNav || pageState === 'MAIN_PORTFOLIO'}
       />
 
-      {/* ═══ 3. MAIN PORTFOLIO TRAJECTORY ═══ */}
-      {pageState === 'MAIN_PORTFOLIO' && (
+      {/* ═══ 2. MAIN PORTFOLIO TRAJECTORY (Rendered only after Intro finishes) ═══ */}
+      {pageState !== 'INTRO_REVEAL' && (
         <main className="relative z-10">
           <Scene01Hero onNavigate={handleNavigate} />
           <Scene02IDCard onNavigate={handleNavigate} />
