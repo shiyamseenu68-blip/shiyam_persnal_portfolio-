@@ -6,11 +6,11 @@ interface Props {
   onActiveStateChange?: (isActive: boolean) => void;
 }
 
-// User's Official HD Anime Video URL
-const ANIME_VIDEO_URL = 'https://videotourl.com/videos/1789050052981-f2ea8d5f-1db3-49be-b972-b866d6924137.mp4';
+// Original Cinematic Fire Video URL
+const CINEMATIC_VIDEO_URL = 'https://videotourl.com/videos/1788867500284-e6f17e76-6a68-494d-804f-2077744f8207.mp4';
 
 /**
- * SceneCinematicFireTransition — Fullscreen Anime Video Transition Bridge
+ * SceneCinematicFireTransition — Fullscreen Cinematic Fire Video Transition Bridge
  * Features 100% Bulletproof Autoplay, Touch/Click Fallback Controls, and Smooth Looping.
  */
 export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onActiveStateChange }) => {
@@ -129,10 +129,10 @@ export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onAc
           }}
         />
 
-        {/* Anime Video Tag */}
+        {/* Cinematic Video Tag */}
         <video
           ref={videoRef}
-          src={ANIME_VIDEO_URL}
+          src={CINEMATIC_VIDEO_URL}
           autoPlay={true}
           muted={isMuted}
           playsInline={true}
@@ -142,7 +142,7 @@ export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onAc
           onLoadedData={safePlayVideo}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
-          onError={(e) => console.error('Anime Video load error:', e)}
+          onError={(e) => console.error('Cinematic Video load error:', e)}
           className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10 m-0 p-0 border-0 opacity-100 scale-105 group-hover:scale-100 transition-transform duration-700"
           style={{
             objectFit: 'cover',
@@ -158,7 +158,7 @@ export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onAc
                 <Play className="w-10 h-10 fill-white translate-x-0.5" />
               </div>
               <span className="font-mono text-xs tracking-[0.3em] text-white uppercase bg-black/80 px-4 py-2 rounded-full border border-[#FF5500]/50">
-                CLICK ANYWHERE TO PLAY ANIME FILM
+                CLICK ANYWHERE TO PLAY FILM
               </span>
             </div>
           </div>
@@ -170,7 +170,7 @@ export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onAc
           <div className="flex items-center space-x-3 text-[#FF5500] uppercase bg-black/70 px-4 py-2 rounded-full border border-[#FF5500]/40 backdrop-blur-md">
             <span className="w-2.5 h-2.5 rounded-full bg-[#FF5500] animate-pulse" />
             <span className="font-bold tracking-widest text-[10px] sm:text-xs">
-              CINEMATIC ANIME SEQUENCE // SHIYAM.S
+              CINEMATIC TRANSITION SEQUENCE // SHIYAM.S
             </span>
           </div>
 
