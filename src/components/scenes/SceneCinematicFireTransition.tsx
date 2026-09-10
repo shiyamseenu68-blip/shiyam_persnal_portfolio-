@@ -6,13 +6,13 @@ interface Props {
   onActiveStateChange?: (isActive: boolean) => void;
 }
 
-// High Speed Vercel CDN Local Video Path (Zero Network Buffer Stalls)
+// Local 10Gbps Vercel Edge CDN Video Path
 const LOCAL_VIDEO_URL = '/videos/cinematic-fire.mp4';
 const REMOTE_VIDEO_URL = 'https://videotourl.com/videos/1788867500284-e6f17e76-6a68-494d-804f-2077744f8207.mp4';
 
 /**
  * SceneCinematicFireTransition — Fullscreen Cinematic Fire Video Transition Bridge
- * Features 100% Instant Vercel CDN Local Video Delivery (Zero Lag, Zero Stalling).
+ * Autoplays seamlessly on scroll using scroll/touch/wheel interaction event bindings.
  */
 export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onActiveStateChange }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -22,7 +22,7 @@ export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onAc
   const [videoSrc, setVideoSrc] = useState(LOCAL_VIDEO_URL);
 
   // Deterministic Play Method
-  const safePlayVideo = () => {
+  const attemptPlay = () => {
     const video = videoRef.current;
     if (!video) return;
 
@@ -33,46 +33,57 @@ export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onAc
     if (promise !== undefined) {
       promise
         .then(() => setIsPlaying(true))
-        .catch((err) => {
-          console.warn('Autoplay gesture required or video stream waiting:', err);
+        .catch(() => {
           setIsPlaying(false);
         });
     }
   };
 
-  // IntersectionObserver for view-based playback
+  // Scroll & Viewport Automatic Playback Trigger Engine
   useEffect(() => {
-    const container = containerRef.current;
     const video = videoRef.current;
-    if (!container || !video) return;
+    const container = containerRef.current;
+    if (!video || !container) return;
 
+    // Enforce HTML5 Autoplay Muted Attributes
     video.muted = isMuted;
     video.defaultMuted = isMuted;
-    video.playsInline = true;
+    video.setAttribute('muted', '');
+    video.setAttribute('playsinline', '');
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const inView = entry.isIntersecting;
-          if (onActiveStateChange) {
-            onActiveStateChange(inView);
-          }
+    const handleScrollCheck = () => {
+      if (!container || !video) return;
+      const rect = container.getBoundingClientRect();
+      const inView = rect.top < window.innerHeight * 0.9 && rect.bottom > window.innerHeight * 0.1;
 
-          if (inView) {
-            safePlayVideo();
-          } else {
-            video.pause();
-            setIsPlaying(false);
-          }
-        });
-      },
-      { threshold: 0.15 }
-    );
+      if (onActiveStateChange) {
+        onActiveStateChange(inView);
+      }
 
-    observer.observe(container);
+      if (inView) {
+        if (video.paused) {
+          attemptPlay();
+        }
+      } else {
+        if (!video.paused) {
+          video.pause();
+          setIsPlaying(false);
+        }
+      }
+    };
+
+    // Bind scroll, wheel, and touchmove as user interaction triggers for autoplay
+    window.addEventListener('scroll', handleScrollCheck, { passive: true });
+    window.addEventListener('touchmove', handleScrollCheck, { passive: true });
+    window.addEventListener('wheel', handleScrollCheck, { passive: true });
+
+    // Initial check
+    handleScrollCheck();
 
     return () => {
-      observer.disconnect();
+      window.removeEventListener('scroll', handleScrollCheck);
+      window.removeEventListener('touchmove', handleScrollCheck);
+      window.removeEventListener('wheel', handleScrollCheck);
     };
   }, [onActiveStateChange, isMuted, videoSrc]);
 
@@ -82,14 +93,14 @@ export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onAc
     if (!video) return;
 
     if (video.paused) {
-      safePlayVideo();
+      attemptPlay();
     } else {
       video.pause();
       setIsPlaying(false);
     }
   };
 
-  // Toggle Mute / Unmute Audio
+  // Toggle Mute / Audio
   const toggleMute = (e: React.MouseEvent) => {
     e.stopPropagation();
     const video = videoRef.current;
@@ -100,12 +111,12 @@ export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onAc
     setIsMuted(nextMuteState);
 
     if (video.paused) {
-      safePlayVideo();
+      attemptPlay();
     }
   };
 
   const handleVideoError = () => {
-    console.warn('Local video load error, trying remote fallback');
+    console.warn('Local video fallback');
     if (videoSrc !== REMOTE_VIDEO_URL) {
       setVideoSrc(REMOTE_VIDEO_URL);
     }
@@ -121,7 +132,7 @@ export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onAc
       {/* FULLSCREEN VIEWPORT */}
       <div className="relative w-full h-full overflow-hidden bg-[#000000] flex items-center justify-center m-0 p-0">
         
-        {/* Particle Embers Background Layer */}
+        {/* Particle Embers Layer */}
         <div 
           className="absolute inset-0 pointer-events-none opacity-40 mix-blend-screen z-0"
           style={{
@@ -138,7 +149,7 @@ export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onAc
           }}
         />
 
-        {/* Local Fast-Streaming CDN Video */}
+        {/* Cinematic Video Tag */}
         <video
           ref={videoRef}
           src={videoSrc}
@@ -147,8 +158,8 @@ export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onAc
           playsInline={true}
           preload="auto"
           loop={true}
-          onCanPlay={safePlayVideo}
-          onLoadedData={safePlayVideo}
+          onCanPlay={attemptPlay}
+          onLoadedData={attemptPlay}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
           onError={handleVideoError}
@@ -159,21 +170,7 @@ export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onAc
           }}
         />
 
-        {/* Center Interactive Play Button Overlay */}
-        {!isPlaying && (
-          <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/50 backdrop-blur-xs transition-opacity duration-300 pointer-events-none">
-            <div className="flex flex-col items-center space-y-4">
-              <div className="w-20 h-20 rounded-full bg-[#FF5500]/90 text-white flex items-center justify-center shadow-[0_0_50px_#FF5500] animate-pulse">
-                <Play className="w-10 h-10 fill-white translate-x-0.5" />
-              </div>
-              <span className="font-mono text-xs tracking-[0.3em] text-white uppercase bg-black/80 px-4 py-2 rounded-full border border-[#FF5500]/50">
-                CLICK ANYWHERE TO PLAY FILM
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* HUD Controls Overlay */}
+        {/* HUD Controls Overlay (Bottom Left & Right) */}
         <div className="absolute bottom-8 left-6 sm:left-10 right-6 sm:right-10 z-30 flex items-center justify-between pointer-events-none font-mono text-xs">
           {/* Left Title Badge */}
           <div className="flex items-center space-x-3 text-[#FF5500] uppercase bg-black/70 px-4 py-2 rounded-full border border-[#FF5500]/40 backdrop-blur-md">
