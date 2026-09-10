@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useMousePosition } from '@/hooks/useMousePosition';
-import { Terminal, Compass, Zap, ArrowRight, Activity, ShieldAlert, Sparkles, Orbit } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useMouseRef } from '@/hooks/useMousePosition';
+import { Terminal, Compass, ArrowRight } from 'lucide-react';
 import smLogoImg from '@/assets/shiyam-sm-logo.png';
 
 interface Scene00IntroProps {
@@ -12,10 +12,8 @@ interface Scene00IntroProps {
 interface Particle {
   x: number;
   y: number;
-  z: number;
   vx: number;
   vy: number;
-  vz: number;
   size: number;
   alpha: number;
   color: string;
@@ -29,14 +27,16 @@ interface Star {
 }
 
 /**
- * Scene00Intro — CYBER SPATIAL IGNITION & 3D WARP HYPERDRIVE INTRO
- * Optimized for ULTRA-FAST 60FPS MOBILE & DESKTOP PERFORMANCE (Zero Lag / Zero Stutter).
+ * Scene00Intro — ULTRA-SMOOTH 60FPS LIGHTNING FAST CYBER SPATIAL INTRO
+ * Re-render Free Mouse Interaction Engine (0 React re-renders on mousemove).
+ * Butter smooth performance on Low-End Mobiles, Laptops, and 4K Displays.
  */
 export const Scene00Intro: React.FC<Scene00IntroProps> = ({ onComplete, onNavReveal }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { normalizedX, normalizedY } = useMousePosition();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mouseRef = useMouseRef();
 
-  // Mobile Detection for Ultra-Smooth 60fps Tuning
+  // Mobile Detection
   const [isMobile, setIsMobile] = useState<boolean>(false);
 
   useEffect(() => {
@@ -44,13 +44,9 @@ export const Scene00Intro: React.FC<Scene00IntroProps> = ({ onComplete, onNavRev
       setIsMobile(window.innerWidth < 768 || navigator.maxTouchPoints > 0);
     };
     checkMobile();
-    window.addEventListener('resize', checkMobile);
+    window.addEventListener('resize', checkMobile, { passive: true });
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-
-  // Multi-axis 3D spatial tilt vectors (Damped on mobile to eliminate touch input latency)
-  const tiltX = isMobile ? 0 : normalizedY * -12;
-  const tiltY = isMobile ? 0 : normalizedX * 14;
 
   // System Progress State (0 to 100)
   const [progress, setProgress] = useState<number>(0);
@@ -64,13 +60,13 @@ export const Scene00Intro: React.FC<Scene00IntroProps> = ({ onComplete, onNavRev
   const mainLetters = ['S', 'H', 'I', 'Y', 'A', 'M'];
   const dotLetters = ['.', 'S'];
 
-  // Fast forward / Skip Handler (Triggers Warp Speed Transition)
+  // Fast forward / Skip Handler
   const triggerWarpExit = () => {
     setIsWarping(true);
     onNavReveal();
     setTimeout(() => {
       onComplete();
-    }, 600);
+    }, 550);
   };
 
   // Keyboard shortcut listener (SPACE to skip)
@@ -93,31 +89,22 @@ export const Scene00Intro: React.FC<Scene00IntroProps> = ({ onComplete, onNavRev
           clearInterval(progressInterval);
           return 100;
         }
-        return prev + 2;
+        return prev + 25; // Accelerates smoothly to ~400ms total loading
       });
-    }, 32);
+    }, 28);
 
-    // Phase 1: Core Explosion (0.4s)
-    const t1 = setTimeout(() => setPhase(1), 400);
-
-    // Phase 2: 3D Monolith Typography Reveal (1.1s)
-    const t2 = setTimeout(() => setPhase(2), 1100);
-
-    // Phase 3: Identity Ignition (2.4s)
-    const t3 = setTimeout(() => setPhase(3), 2400);
-
-    // Phase 4: Rare Red Alert Moment (3.2s)
+    const t1 = setTimeout(() => setPhase(1), 350);
+    const t2 = setTimeout(() => setPhase(2), 900);
+    const t3 = setTimeout(() => setPhase(3), 2000);
     const t4 = setTimeout(() => {
       setPhase(4);
       setShowRedAccent(true);
-      setTimeout(() => setShowRedAccent(false), 800);
-    }, 3200);
-
-    // Phase 5: Warp Hyperdrive Zoom Exit (4.2s)
+      setTimeout(() => setShowRedAccent(false), 700);
+    }, 2700);
     const t5 = setTimeout(() => {
       setPhase(5);
       triggerWarpExit();
-    }, 4200);
+    }, 3600);
 
     return () => {
       clearInterval(progressInterval);
@@ -129,7 +116,7 @@ export const Scene00Intro: React.FC<Scene00IntroProps> = ({ onComplete, onNavRev
     };
   }, []);
 
-  // Canvas 2D Atmospheric Cyber Spatial Ignition Engine (Optimized for 60fps Hardware Acceleration)
+  // 60FPS Canvas 2D + Smooth Lerp Spatial Parallax Engine (Zero React re-render overhead)
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -145,27 +132,29 @@ export const Scene00Intro: React.FC<Scene00IntroProps> = ({ onComplete, onNavRev
       width = canvas.width = canvas.offsetWidth;
       height = canvas.height = canvas.offsetHeight;
     };
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', handleResize, { passive: true });
 
-    // Lightweight spatial star & particle counts optimized for mobile CPUs
-    const starCount = isMobile ? 40 : 150;
+    // Smooth Lerped Tilt values
+    let currentTiltX = 0;
+    let currentTiltY = 0;
+
+    // Optimized particle counts
+    const starCount = isMobile ? 30 : 100;
     const stars: Star[] = Array.from({ length: starCount }, () => ({
-      x: (Math.random() - 0.5) * width * 1.8,
-      y: (Math.random() - 0.5) * height * 1.8,
+      x: (Math.random() - 0.5) * width * 1.5,
+      y: (Math.random() - 0.5) * height * 1.5,
       z: Math.random() * width,
       pz: Math.random() * width,
     }));
 
-    const particleCount = isMobile ? 25 : 60;
+    const particleCount = isMobile ? 18 : 45;
     const particles: Particle[] = Array.from({ length: particleCount }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
-      z: Math.random() * 2 + 0.5,
-      vx: (Math.random() - 0.5) * 0.4,
-      vy: (Math.random() - 0.5) * 0.4,
-      vz: 0,
-      size: Math.random() * 2.2 + 0.6,
-      alpha: Math.random() * 0.6 + 0.2,
+      size: Math.random() * 2 + 0.6,
+      alpha: Math.random() * 0.5 + 0.2,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
       color: Math.random() > 0.85 ? '#EF4444' : '#FF5500',
     }));
 
@@ -176,43 +165,53 @@ export const Scene00Intro: React.FC<Scene00IntroProps> = ({ onComplete, onNavRev
       ctx.clearRect(0, 0, width, height);
       animTime += 0.025;
 
+      // Lerp tilt calculation for silky smooth mouse/touch movement
+      const targetTiltX = isMobile ? 0 : mouseRef.current.normalizedY * -10;
+      const targetTiltY = isMobile ? 0 : mouseRef.current.normalizedX * 12;
+      currentTiltX += (targetTiltX - currentTiltX) * 0.08;
+      currentTiltY += (targetTiltY - currentTiltY) * 0.08;
+
+      if (containerRef.current && !isMobile) {
+        containerRef.current.style.transform = `perspective(1000px) rotateX(${currentTiltX}deg) rotateY(${currentTiltY}deg)`;
+      }
+
       const centerX = width * 0.5;
       const centerY = height * 0.5;
 
-      // 1. Deep Void Radial Gradient (Zero DOM Filter Blur, pure 60fps canvas fill)
+      // 1. Radial Background Gradient
       const bgGrad = ctx.createRadialGradient(
         centerX,
         centerY,
         10,
         centerX,
         centerY,
-        width * 0.95
+        width * 0.9
       );
-      bgGrad.addColorStop(0, `rgba(255, 85, 0, ${isWarping ? 0.4 : 0.18 + Math.sin(animTime * 1.5) * 0.04})`);
+      bgGrad.addColorStop(0, `rgba(255, 85, 0, ${isWarping ? 0.35 : 0.16 + Math.sin(animTime * 1.5) * 0.03})`);
       bgGrad.addColorStop(0.35, 'rgba(10, 4, 2, 0.98)');
       bgGrad.addColorStop(0.8, '#040203');
       bgGrad.addColorStop(1, '#000000');
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, width, height);
 
-      // 2. Core Explosion Shockwave Ring (No expensive canvas shadowBlur filter)
-      if (phase >= 1 && shockwaveRadius < width * 0.85) {
-        shockwaveRadius += 22;
-        const swAlpha = Math.max(0, 1 - shockwaveRadius / (width * 0.85));
+      // 2. Shockwave Pulse
+      if (phase >= 1 && shockwaveRadius < width * 0.8) {
+        shockwaveRadius += 24;
+        const swAlpha = Math.max(0, 1 - shockwaveRadius / (width * 0.8));
 
         ctx.save();
         ctx.strokeStyle = `rgba(255, 120, 0, ${swAlpha})`;
-        ctx.lineWidth = 2.5;
+        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(centerX, centerY, shockwaveRadius, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
       }
 
-      // 3. Hyperdrive Starfield Lines
-      const warpSpeed = isWarping ? 30 : phase >= 1 ? 3.5 : 1.2;
+      // 3. Hyperdrive Star Lines
+      const warpSpeed = isWarping ? 28 : phase >= 1 ? 3 : 1;
       ctx.save();
-      ctx.strokeStyle = isWarping ? 'rgba(255, 140, 0, 0.85)' : 'rgba(255, 85, 0, 0.3)';
+      ctx.strokeStyle = isWarping ? 'rgba(255, 140, 0, 0.8)' : 'rgba(255, 85, 0, 0.25)';
       ctx.lineWidth = isWarping ? 2 : 1;
 
       for (let i = 0; i < stars.length; i++) {
@@ -223,8 +222,8 @@ export const Scene00Intro: React.FC<Scene00IntroProps> = ({ onComplete, onNavRev
         if (star.z <= 0) {
           star.z = width;
           star.pz = width;
-          star.x = (Math.random() - 0.5) * width * 1.8;
-          star.y = (Math.random() - 0.5) * height * 1.8;
+          star.x = (Math.random() - 0.5) * width * 1.5;
+          star.y = (Math.random() - 0.5) * height * 1.5;
         }
 
         const k = 256 / star.z;
@@ -244,7 +243,7 @@ export const Scene00Intro: React.FC<Scene00IntroProps> = ({ onComplete, onNavRev
       }
       ctx.restore();
 
-      // 4. Floating Spatial Dust & Embers
+      // 4. Particles
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
         p.x += p.vx;
@@ -274,20 +273,20 @@ export const Scene00Intro: React.FC<Scene00IntroProps> = ({ onComplete, onNavRev
 
   return (
     <div
-      className={`fixed inset-0 z-[99999] bg-[#000000] text-white flex flex-col justify-between p-4 sm:p-8 lg:p-10 overflow-hidden select-none pointer-events-auto transition-all duration-500 ease-in-out will-change-transform ${
-        isWarping ? 'scale-[1.8] opacity-0 blur-md' : 'scale-100 opacity-100 blur-none'
+      className={`fixed inset-0 z-[99999] bg-[#000000] text-white flex flex-col justify-between p-4 sm:p-8 lg:p-10 overflow-hidden select-none pointer-events-auto transition-all duration-500 ease-out will-change-transform ${
+        isWarping ? 'scale-125 opacity-0 blur-sm' : 'scale-100 opacity-100 blur-none'
       }`}
     >
       {/* Background Canvas Layer */}
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none z-0" />
 
-      {/* Lightweight Atmospheric Glowing Core Spotlight */}
+      {/* Lightweight Spotlight */}
       <div
-        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] sm:w-[900px] lg:w-[1200px] h-[500px] sm:h-[900px] lg:h-[1200px] rounded-full blur-3xl pointer-events-none transition-all duration-700 ${
-          phase >= 1 ? 'opacity-80 scale-100' : 'opacity-20 scale-50'
+        className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] sm:w-[800px] h-[450px] sm:h-[800px] rounded-full blur-2xl pointer-events-none transition-all duration-500 ${
+          phase >= 1 ? 'opacity-75 scale-100' : 'opacity-20 scale-50'
         }`}
         style={{
-          background: 'radial-gradient(circle, rgba(255, 85, 0, 0.35) 0%, rgba(12, 5, 2, 0) 70%)',
+          background: 'radial-gradient(circle, rgba(255, 85, 0, 0.3) 0%, rgba(10, 4, 2, 0) 70%)',
         }}
       />
 
@@ -305,67 +304,51 @@ export const Scene00Intro: React.FC<Scene00IntroProps> = ({ onComplete, onNavRev
         </div>
 
         {/* System Status Badge */}
-        <div className="flex items-center space-x-3">
-          <div className="hidden md:flex items-center space-x-1 h-3">
-            {[40, 80, 60, 100, 50].map((h, i) => (
-              <motion.div
-                key={i}
-                className="w-1 bg-[#FF5500] rounded-full"
-                animate={{ height: [`${h * 0.3}%`, `${h}%`, `${h * 0.4}%`] }}
-                transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.1 }}
-              />
-            ))}
-          </div>
-
-          <div
-            className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-full border backdrop-blur-sm transition-all duration-300 ${
-              showRedAccent
-                ? 'bg-[#EF4444]/25 border-[#EF4444] text-[#EF4444]'
-                : 'bg-orange-950/40 border-[#FF5500]/40 text-neutral-200'
-            }`}
-          >
-            <span className="relative flex h-2 w-2">
-              <span
-                className={`animate-ping absolute inline-flex h-full w-full rounded-full ${
-                  showRedAccent ? 'bg-[#EF4444]' : 'bg-[#FF5500]'
-                }`}
-              />
-              <span
-                className={`relative inline-flex rounded-full h-2 w-2 ${
-                  showRedAccent ? 'bg-[#EF4444]' : 'bg-[#FF5500]'
-                }`}
-              />
-            </span>
-            <span className="font-extrabold tracking-widest text-[9px] sm:text-[10px]">
-              {showRedAccent ? '● SIGNAL ACTIVE' : '● WARP CORE READY'}
-            </span>
-          </div>
+        <div
+          className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-full border backdrop-blur-sm transition-all duration-300 ${
+            showRedAccent
+              ? 'bg-[#EF4444]/25 border-[#EF4444] text-[#EF4444]'
+              : 'bg-orange-950/40 border-[#FF5500]/40 text-neutral-200'
+          }`}
+        >
+          <span className="relative flex h-2 w-2">
+            <span
+              className={`animate-ping absolute inline-flex h-full w-full rounded-full ${
+                showRedAccent ? 'bg-[#EF4444]' : 'bg-[#FF5500]'
+              }`}
+            />
+            <span
+              className={`relative inline-flex rounded-full h-2 w-2 ${
+                showRedAccent ? 'bg-[#EF4444]' : 'bg-[#FF5500]'
+              }`}
+            />
+          </span>
+          <span className="font-extrabold tracking-widest text-[9px] sm:text-[10px]">
+            {showRedAccent ? '● SIGNAL ACTIVE' : '● SYSTEM ONLINE'}
+          </span>
         </div>
       </div>
 
       {/* CENTER STAGE: CYBER SPATIAL IGNITION & 3D MONOLITH TYPOGRAPHY */}
       <div
-        className="relative z-10 max-w-7xl w-full mx-auto my-auto flex flex-col items-center justify-center text-center space-y-3 sm:space-y-5"
-        style={{
-          transform: isMobile ? 'none' : `perspective(1200px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`,
-          transition: 'transform 0.15s ease-out',
-        }}
+        ref={containerRef}
+        className="relative z-10 max-w-7xl w-full mx-auto my-auto flex flex-col items-center justify-center text-center space-y-3 sm:space-y-5 will-change-transform"
       >
         {/* 3D Animated Official SM Logo Holographic Core Emblem */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.3 }}
-          animate={phase >= 1 ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.3 }}
-          transition={{ duration: 0.7, type: 'spring', stiffness: 140 }}
+          initial={{ opacity: 0, scale: 0.4 }}
+          animate={phase >= 1 ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.4 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
           className="relative z-20 flex items-center justify-center mb-1"
         >
           <div className="relative group cursor-pointer">
             {/* Spinning Sci-Fi Ring */}
-            <div className="absolute -inset-4 sm:-inset-6 rounded-full border border-dashed border-[#FF5500]/60 animate-[spin_10s_linear_infinite] pointer-events-none" />
+            <div className="absolute -inset-3 sm:-inset-5 rounded-full border border-dashed border-[#FF5500]/50 animate-[spin_12s_linear_infinite] pointer-events-none" />
 
             {/* Glowing Energy Aura */}
-            <div className="absolute -inset-3 rounded-full bg-[#FF5500]/30 blur-lg group-hover:bg-[#FF5500]/50 transition-all duration-300" />
+            <div className="absolute -inset-2 rounded-full bg-[#FF5500]/25 blur-md" />
             
-            <div className="relative w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-black/85 p-2 border border-[#FF5500]/60 shadow-lg flex items-center justify-center overflow-hidden">
+            <div className="relative w-16 h-16 sm:w-22 sm:h-22 rounded-full bg-black/85 p-2 border border-[#FF5500]/50 shadow-md flex items-center justify-center overflow-hidden">
               <img
                 src={smLogoImg}
                 alt="SHIYAM SM Logo Emblem"
@@ -379,7 +362,7 @@ export const Scene00Intro: React.FC<Scene00IntroProps> = ({ onComplete, onNavRev
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={phase >= 1 ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.4 }}
           className="inline-flex items-center space-x-2 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full bg-orange-950/40 border border-[#FF5500]/40 font-mono text-[10px] sm:text-xs md:text-sm font-bold tracking-[0.15em] sm:tracking-[0.25em] text-[#FF5500] uppercase"
         >
           <Terminal className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FF5500]" />
@@ -393,8 +376,8 @@ export const Scene00Intro: React.FC<Scene00IntroProps> = ({ onComplete, onNavRev
             <motion.div
               initial={{ scaleX: 0, opacity: 0 }}
               animate={{ scaleX: 1, opacity: 1 }}
-              transition={{ duration: 0.6, ease: 'easeOut' }}
-              className="absolute top-1/2 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#FF5500] to-transparent shadow-[0_0_30px_#FF5500] pointer-events-none z-20"
+              transition={{ duration: 0.5, ease: 'easeOut' }}
+              className="absolute top-1/2 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#FF5500] to-transparent shadow-[0_0_20px_#FF5500] pointer-events-none z-20"
             />
           )}
 
@@ -404,24 +387,20 @@ export const Scene00Intro: React.FC<Scene00IntroProps> = ({ onComplete, onNavRev
             {mainLetters.map((letter, index) => (
               <motion.span
                 key={index}
-                initial={{ opacity: 0, y: 40, scale: 0.6 }}
+                initial={{ opacity: 0, y: 30, scale: 0.7 }}
                 animate={
                   phase >= 2
                     ? { opacity: 1, y: 0, scale: 1 }
-                    : { opacity: 0, y: 40, scale: 0.6 }
+                    : { opacity: 0, y: 30, scale: 0.7 }
                 }
                 transition={{
-                  duration: 0.5,
-                  delay: index * 0.08,
-                  type: 'spring',
-                  stiffness: 160,
-                  damping: 14,
+                  duration: 0.4,
+                  delay: index * 0.06,
+                  ease: 'easeOut',
                 }}
-                className="relative inline-block font-display font-black text-4xl xs:text-5xl sm:text-7xl lg:text-[11vw] tracking-tighter text-white drop-shadow-[0_8px_25px_rgba(255,85,0,0.7)]"
+                className="relative inline-block font-display font-black text-4xl xs:text-5xl sm:text-7xl lg:text-[11vw] tracking-tighter text-white"
                 style={{
-                  textShadow: isMobile
-                    ? '0 2px 8px rgba(255,85,0,.6)'
-                    : '0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb, 0 4px 0 #b9b9b9, 0 5px 12px rgba(255,85,0,.45)',
+                  textShadow: '0 2px 10px rgba(255,85,0,.6)',
                 }}
               >
                 {letter}
@@ -439,13 +418,11 @@ export const Scene00Intro: React.FC<Scene00IntroProps> = ({ onComplete, onNavRev
                     : { opacity: 0, scale: 0 }
                 }
                 transition={{
-                  duration: 0.55,
-                  delay: 0.5 + index * 0.1,
-                  type: 'spring',
-                  stiffness: 180,
-                  damping: 12,
+                  duration: 0.45,
+                  delay: 0.4 + index * 0.08,
+                  ease: 'easeOut',
                 }}
-                className="relative inline-block font-display font-black text-4xl xs:text-5xl sm:text-7xl lg:text-[11vw] tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-[#FF5500] via-[#FF3300] to-[#FFA000] drop-shadow-[0_0_35px_rgba(255,85,0,0.9)]"
+                className="relative inline-block font-display font-black text-4xl xs:text-5xl sm:text-7xl lg:text-[11vw] tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-[#FF5500] via-[#FF3300] to-[#FFA000]"
               >
                 {letter}
               </motion.span>
@@ -455,19 +432,19 @@ export const Scene00Intro: React.FC<Scene00IntroProps> = ({ onComplete, onNavRev
 
         {/* Dynamic Tagline Reveal */}
         <motion.p
-          initial={{ opacity: 0, y: 15 }}
-          animate={phase >= 3 ? { opacity: 1, y: 0 } : { opacity: 0, y: 15 }}
-          transition={{ duration: 0.5 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={phase >= 3 ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+          transition={{ duration: 0.4 }}
           className="font-display text-sm sm:text-xl lg:text-3xl font-extrabold tracking-tight text-neutral-200"
         >
           TURNING VISION INTO{' '}
-          <span className="text-[#FF5500] drop-shadow-[0_0_25px_rgba(255,85,0,0.9)] underline decoration-[#FF5500]/50 underline-offset-4">
+          <span className="text-[#FF5500] underline decoration-[#FF5500]/50 underline-offset-4">
             DIGITAL REALITY.
           </span>
         </motion.p>
 
         {/* Charging Progress Matrix Bar */}
-        <div className="w-full max-w-[240px] sm:max-w-md mx-auto pt-1 flex flex-col items-center space-y-1.5">
+        <div className="w-full max-w-[220px] sm:max-w-md mx-auto pt-1 flex flex-col items-center space-y-1.5">
           <div className="w-full h-1 sm:h-1.5 bg-neutral-900 rounded-full overflow-hidden border border-[#FF5500]/35 p-0.5">
             <motion.div
               className="h-full bg-gradient-to-r from-[#FF5500] via-amber-400 to-[#FF5500] rounded-full"
