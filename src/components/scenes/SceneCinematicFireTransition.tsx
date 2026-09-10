@@ -6,18 +6,20 @@ interface Props {
   onActiveStateChange?: (isActive: boolean) => void;
 }
 
-// Original Cinematic Fire Video URL
-const CINEMATIC_VIDEO_URL = 'https://videotourl.com/videos/1788867500284-e6f17e76-6a68-494d-804f-2077744f8207.mp4';
+// High Speed Vercel CDN Local Video Path (Zero Network Buffer Stalls)
+const LOCAL_VIDEO_URL = '/videos/cinematic-fire.mp4';
+const REMOTE_VIDEO_URL = 'https://videotourl.com/videos/1788867500284-e6f17e76-6a68-494d-804f-2077744f8207.mp4';
 
 /**
  * SceneCinematicFireTransition — Fullscreen Cinematic Fire Video Transition Bridge
- * Features 100% Bulletproof Autoplay, Touch/Click Fallback Controls, and Smooth Looping.
+ * Features 100% Instant Vercel CDN Local Video Delivery (Zero Lag, Zero Stalling).
  */
 export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onActiveStateChange }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [videoSrc, setVideoSrc] = useState(LOCAL_VIDEO_URL);
 
   // Deterministic Play Method
   const safePlayVideo = () => {
@@ -32,13 +34,13 @@ export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onAc
       promise
         .then(() => setIsPlaying(true))
         .catch((err) => {
-          console.warn('Autoplay waiting for user gesture:', err);
+          console.warn('Autoplay gesture required or video stream waiting:', err);
           setIsPlaying(false);
         });
     }
   };
 
-  // IntersectionObserver to start video when scrolled into view
+  // IntersectionObserver for view-based playback
   useEffect(() => {
     const container = containerRef.current;
     const video = videoRef.current;
@@ -72,9 +74,9 @@ export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onAc
     return () => {
       observer.disconnect();
     };
-  }, [onActiveStateChange, isMuted]);
+  }, [onActiveStateChange, isMuted, videoSrc]);
 
-  // Click/Tap anywhere to play/pause video
+  // Click/Tap anywhere to toggle play/pause
   const togglePlay = () => {
     const video = videoRef.current;
     if (!video) return;
@@ -87,7 +89,7 @@ export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onAc
     }
   };
 
-  // Toggle Mute / Audio
+  // Toggle Mute / Unmute Audio
   const toggleMute = (e: React.MouseEvent) => {
     e.stopPropagation();
     const video = videoRef.current;
@@ -102,6 +104,13 @@ export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onAc
     }
   };
 
+  const handleVideoError = () => {
+    console.warn('Local video load error, trying remote fallback');
+    if (videoSrc !== REMOTE_VIDEO_URL) {
+      setVideoSrc(REMOTE_VIDEO_URL);
+    }
+  };
+
   return (
     <section
       ref={containerRef}
@@ -109,10 +118,10 @@ export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onAc
       onClick={togglePlay}
       className="relative h-screen w-full bg-[#000000] m-0 p-0 overflow-hidden selection:bg-[#FF5500]/30 selection:text-white border-none cursor-pointer group"
     >
-      {/* FULLSCREEN VIEWPORT (100vw x 100vh) */}
+      {/* FULLSCREEN VIEWPORT */}
       <div className="relative w-full h-full overflow-hidden bg-[#000000] flex items-center justify-center m-0 p-0">
         
-        {/* Particle Embers Layer */}
+        {/* Particle Embers Background Layer */}
         <div 
           className="absolute inset-0 pointer-events-none opacity-40 mix-blend-screen z-0"
           style={{
@@ -121,7 +130,7 @@ export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onAc
           }}
         />
 
-        {/* Ambient Radial Vignette Overlay */}
+        {/* Ambient Radial Vignette */}
         <div 
           className="absolute inset-0 pointer-events-none z-20"
           style={{
@@ -129,10 +138,10 @@ export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onAc
           }}
         />
 
-        {/* Cinematic Video Tag */}
+        {/* Local Fast-Streaming CDN Video */}
         <video
           ref={videoRef}
-          src={CINEMATIC_VIDEO_URL}
+          src={videoSrc}
           autoPlay={true}
           muted={isMuted}
           playsInline={true}
@@ -142,7 +151,7 @@ export const SceneCinematicFireTransition: React.FC<Props> = ({ onNavigate, onAc
           onLoadedData={safePlayVideo}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
-          onError={(e) => console.error('Cinematic Video load error:', e)}
+          onError={handleVideoError}
           className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10 m-0 p-0 border-0 opacity-100 scale-105 group-hover:scale-100 transition-transform duration-700"
           style={{
             objectFit: 'cover',
